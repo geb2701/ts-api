@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["linux-arm64-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql" // cambia a mysql/sqlite/sqlserver si querés
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sucursal {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Partidos  Partido[]
+}
+
+model Partido {
+  id            Int       @id @default(autoincrement())
+  sucursalId    Int
+  canchaNumero  Int
+  equipo1Nombre String
+  equipo2Nombre String
+  puntosEq1     Int       @default(0)
+  puntosEq2     Int       @default(0)
+  estado        Estado    @default(ACTIVO) // ACTIVO | FINALIZADO
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+
+  Sucursal Sucursal @relation(fields: [sucursalId], references: [id])
+
+  @@index([sucursalId, canchaNumero, estado])
+}
+
+enum Estado {
+  ACTIVO
+  FINALIZADO
+}
